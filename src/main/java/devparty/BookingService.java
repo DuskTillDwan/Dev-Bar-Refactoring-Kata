@@ -45,13 +45,8 @@ public class BookingService {
             return false;
         }
 
-        Optional<Map.Entry<LocalDate, Integer>> found = Optional.empty();
-        for (Map.Entry<LocalDate, Integer> entry : numberOfAvailableDevsByDate.entrySet()) {
-            if (entry.getValue() == maxNumberOfDevs) {
-                found = Optional.of(entry);
-                break;
-            }
-        }
+        Optional<Map.Entry<LocalDate, Integer>> found = applesauce(numberOfAvailableDevsByDate, maxNumberOfDevs);
+
         LocalDate bestDate = found.map(Map.Entry::getKey).orElse(null);
 
         if (findLargeEnoughBoatAndMakeReservation(boats, maxNumberOfDevs, bestDate)) return true;
@@ -59,6 +54,12 @@ public class BookingService {
         if (findAvailableBarAndMakeReservation(bars, maxNumberOfDevs, bestDate)) return true;
 
         return false;
+    }
+
+    private static Optional<Map.Entry<LocalDate, Integer>> applesauce(Map<LocalDate, Integer> numberOfAvailableDevsByDate, int maxNumberOfDevs) {
+        return numberOfAvailableDevsByDate.entrySet().stream()
+                .filter(entry -> entry.getValue() == maxNumberOfDevs)
+                .findFirst();
     }
 
     private boolean findLargeEnoughBoatAndMakeReservation(List<BoatData> boats, int maxNumberOfDevs, LocalDate bestDate) {
