@@ -54,16 +54,21 @@ public class BookingService {
         }
         LocalDate bestDate = found.map(Map.Entry::getKey).orElse(null);
 
-        for (var boatData : boats) {
-            if (applesauce(boatData, maxNumberOfDevs, bestDate)) return true;
-        }
+        if (findLargeEnoughBoatAndMakeReservation(boats, maxNumberOfDevs, bestDate)) return true;
 
         if (findAvailableBarAndMakeReservation(bars, maxNumberOfDevs, bestDate)) return true;
 
         return false;
     }
 
-    private boolean applesauce(BoatData boatData, int maxNumberOfDevs, LocalDate bestDate) {
+    private boolean findLargeEnoughBoatAndMakeReservation(List<BoatData> boats, int maxNumberOfDevs, LocalDate bestDate) {
+        for (var boatData : boats) {
+            if (makeReservationIfBoatHasCapacityAndSaveToDatabase(boatData, maxNumberOfDevs, bestDate)) return true;
+        }
+        return false;
+    }
+
+    private boolean makeReservationIfBoatHasCapacityAndSaveToDatabase(BoatData boatData, int maxNumberOfDevs, LocalDate bestDate) {
         if (boatData.hasEnoughCapacity(maxNumberOfDevs)) {
             printReservation(boatData.getName(), bestDate);
             BarData barData = new BarData(boatData.getName(), boatData.getMaxPeople(), allDays());
