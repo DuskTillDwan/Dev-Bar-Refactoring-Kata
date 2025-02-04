@@ -3,6 +3,7 @@ package devparty;
 import devparty.model.BarData;
 import devparty.model.BoatData;
 import devparty.model.BookingData;
+import devparty.model.DevData;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -28,32 +29,50 @@ public class BookingService {
         var devs = new ArrayList<>(devRepo.get());
         var boats = boatRepo.get();
 
-        Map<LocalDate, Integer> numberOfAvailableDevsByDate = new HashMap<>();
+        Result result = getResult(devs);
+        if (result == null) return false;
+
+        if (findLargeEnoughBoatAndMakeReservation(boats, result.maxNumberOfDevs, result.bestDate)) return true;
+
+        if (findAvailableBarAndMakeReservation(bars, result.maxNumberOfDevs, result.bestDate)) return true;
+
+        return false;
+    }
+
+    private static Result getResult(ArrayList<DevData> devs) {
+        Map<LocalDate, Integer> numberOfAvailableDevsByDate = buildMapOfWorkingDaysToNumberOfDevsIThink(devs);
+        int maxNumberOfDevs = Collections.max(numberOfAvailableDevsByDate.values());
+        if (maxNumberOfDevs <= devs.size() * 0.6) {
+            return null;
+        }
+        Optional<Map.Entry<LocalDate, Integer>> found = applesauce(numberOfAvailableDevsByDate, maxNumberOfDevs);
+        LocalDate bestDate = found.map(Map.Entry::getKey).orElse(null);
+        Result result = new Result(maxNumberOfDevs, bestDate);
+        return result;
+    }
+
+    private static Map<LocalDate, Integer> buildMapOfWorkingDaysToNumberOfDevsIThink(ArrayList<DevData> devs) {
+        Map<LocalDate, Integer> numberOfWorkingDevsByDateIThink = new HashMap<>();
         for (var devData : devs) {
-            for (var date : devData.getOnSite()) {
-                if (numberOfAvailableDevsByDate.containsKey(date)) {
-                    numberOfAvailableDevsByDate.put(date, numberOfAvailableDevsByDate.get(date) + 1);
+            for (var workingDays : devData.getWorkingDaysIThink()) {
+                if (numberOfWorkingDevsByDateIThink.containsKey(workingDays)) {
+                    numberOfWorkingDevsByDateIThink.put(workingDays, numberOfWorkingDevsByDateIThink.get(workingDays) + 1);
                 } else {
-                    numberOfAvailableDevsByDate.put(date, 1);
+                    numberOfWorkingDevsByDateIThink.put(workingDays, 1);
                 }
             }
         }
+        return numberOfWorkingDevsByDateIThink;
+    }
 
-        int maxNumberOfDevs = Collections.max(numberOfAvailableDevsByDate.values());
+    private static class Result {
+        public final int maxNumberOfDevs;
+        public final LocalDate bestDate;
 
-        if (maxNumberOfDevs <= devs.size() * 0.6) {
-            return false;
+        public Result(int maxNumberOfDevs, LocalDate bestDate) {
+            this.maxNumberOfDevs = maxNumberOfDevs;
+            this.bestDate = bestDate;
         }
-
-        Optional<Map.Entry<LocalDate, Integer>> found = applesauce(numberOfAvailableDevsByDate, maxNumberOfDevs);
-
-        LocalDate bestDate = found.map(Map.Entry::getKey).orElse(null);
-
-        if (findLargeEnoughBoatAndMakeReservation(boats, maxNumberOfDevs, bestDate)) return true;
-
-        if (findAvailableBarAndMakeReservation(bars, maxNumberOfDevs, bestDate)) return true;
-
-        return false;
     }
 
     private static Optional<Map.Entry<LocalDate, Integer>> applesauce(Map<LocalDate, Integer> numberOfAvailableDevsByDate, int maxNumberOfDevs) {

@@ -8,15 +8,15 @@ public class DevData {
         return name;
     }
 
-    public List<LocalDate> getOnSite() {
-        return onSite;
+    public List<LocalDate> getWorkingDaysIThink() {
+        return workingDays;
     }
 
     private String name;
-    private List<LocalDate> onSite;
+    private List<LocalDate> workingDays;
 
-    public DevData(String name, List<LocalDate> onSite) {
+    public DevData(String name, List<LocalDate> workingDays) {
         this.name = name;
-        this.onSite = onSite;
+        this.workingDays = workingDays;
     }
 }
