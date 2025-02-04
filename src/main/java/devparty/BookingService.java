@@ -1,7 +1,7 @@
 package devparty;
 
-import devparty.model.Bar;
 import devparty.model.BarData;
+import devparty.model.BoatData;
 import devparty.model.BookingData;
 
 import java.time.DayOfWeek;
@@ -55,13 +55,7 @@ public class BookingService {
         LocalDate bestDate = found.map(Map.Entry::getKey).orElse(null);
 
         for (var boatData : boats) {
-            Bar bar = new Bar();
-            if (bar.hasEnoughCapacity(boatData, maxNumberOfDevs)) {
-                printReservation(boatData.getName(), bestDate);
-                BarData barData = new BarData(boatData.getName(), boatData.getMaxPeople(), allDays());
-                bookingRepo.save(new BookingData(barData, bestDate));
-                return true;
-            }
+            if (applesauce(boatData, maxNumberOfDevs, bestDate)) return true;
         }
 
         if (findAvailableBarAndMakeReservation(bars, maxNumberOfDevs, bestDate)) return true;
@@ -69,11 +63,19 @@ public class BookingService {
         return false;
     }
 
-    private boolean findAvailableBarAndMakeReservation(List<BarData> bars, int maxNumberOfDevs, LocalDate bestDate) {
-        for (var barData : bars) {
-            if (makeReservationIfBarIsAvailableAndSaveToDatabase(maxNumberOfDevs, bestDate, barData)) return true;
+    private boolean applesauce(BoatData boatData, int maxNumberOfDevs, LocalDate bestDate) {
+        if (boatData.hasEnoughCapacity(maxNumberOfDevs)) {
+            printReservation(boatData.getName(), bestDate);
+            BarData barData = new BarData(boatData.getName(), boatData.getMaxPeople(), allDays());
+            bookingRepo.save(new BookingData(barData, bestDate));
+            return true;
         }
         return false;
+    }
+
+    private boolean findAvailableBarAndMakeReservation(List<BarData> bars, int maxNumberOfDevs, LocalDate bestDate) {
+        return bars.stream()
+                .anyMatch(barData -> makeReservationIfBarIsAvailableAndSaveToDatabase(maxNumberOfDevs, bestDate, barData));
     }
 
     private boolean makeReservationIfBarIsAvailableAndSaveToDatabase(int maxNumberOfDevs, LocalDate bestDate, BarData barData) {

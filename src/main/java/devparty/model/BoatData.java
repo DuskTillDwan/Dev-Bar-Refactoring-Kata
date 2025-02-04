@@ -18,4 +18,8 @@ public class BoatData {
         this.name = name;
         this.maxPeople = maxPeople;
     }
+
+    public boolean hasEnoughCapacity(int maxNumberOfDevs) {
+        return getMaxPeople() >= maxNumberOfDevs;
+    }
 }
