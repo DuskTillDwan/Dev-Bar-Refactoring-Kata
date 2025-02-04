@@ -54,18 +54,14 @@ public class BookingService {
                 break;
             }
         }
-        LocalDate bestDate = found
-                .map(Map.Entry::getKey)
-                .orElse(null);
+        LocalDate bestDate = found.map(Map.Entry::getKey).orElse(null);
 
         for (var boatData : boats) {
             Bar bar = new Bar();
             if (bar.hasEnoughCapacity(boatData, maxNumberOfDevs)) {
                 bookBar(boatData.getName(), bestDate);
                 BarData barData = new BarData(boatData.getName(), boatData.getMaxPeople(), allDays());
-                bookingRepo.save(new BookingData(
-                        barData, bestDate
-                ));
+                bookingRepo.save(new BookingData(barData, bestDate));
                 return true;
             }
         }
