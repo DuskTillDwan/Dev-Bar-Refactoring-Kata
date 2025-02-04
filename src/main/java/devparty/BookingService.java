@@ -57,29 +57,43 @@ public class BookingService {
         for (var boatData : boats) {
             Bar bar = new Bar();
             if (bar.hasEnoughCapacity(boatData, maxNumberOfDevs)) {
-                bookBar(boatData.getName(), bestDate);
+                printReservation(boatData.getName(), bestDate);
                 BarData barData = new BarData(boatData.getName(), boatData.getMaxPeople(), allDays());
                 bookingRepo.save(new BookingData(barData, bestDate));
                 return true;
             }
         }
 
-        for (var barData : bars) {
-            if (barData.getCapacity() >= maxNumberOfDevs && barData.getOpen().contains(bestDate.getDayOfWeek())) {
-                bookBar(barData.getName(), bestDate);
-                bookingRepo.save(new BookingData(barData, bestDate));
-                return true;
-            }
-        }
+        if (findAvailableBarAndMakeReservation(bars, maxNumberOfDevs, bestDate)) return true;
 
         return false;
+    }
+
+    private boolean findAvailableBarAndMakeReservation(List<BarData> bars, int maxNumberOfDevs, LocalDate bestDate) {
+        for (var barData : bars) {
+            if (makeReservationIfBarIsAvailableAndSaveToDatabase(maxNumberOfDevs, bestDate, barData)) return true;
+        }
+        return false;
+    }
+
+    private boolean makeReservationIfBarIsAvailableAndSaveToDatabase(int maxNumberOfDevs, LocalDate bestDate, BarData barData) {
+        if (barIsAvailable(maxNumberOfDevs, bestDate, barData)) {
+            printReservation(barData.getName(), bestDate);
+            bookingRepo.save(new BookingData(barData, bestDate));
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean barIsAvailable(int maxNumberOfDevs, LocalDate bestDate, BarData barData) {
+        return barData.getCapacity() >= maxNumberOfDevs && barData.getOpen().contains(bestDate.getDayOfWeek());
     }
 
     private static List<DayOfWeek> allDays() {
         return Arrays.asList(DayOfWeek.values());
     }
 
-    private void bookBar(String name, LocalDate dateTime) {
+    private void printReservation(String name, LocalDate dateTime) {
         System.out.println("Bar booked: " + name + " at " + dateTime);
     }
 
