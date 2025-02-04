@@ -7,7 +7,6 @@ import devparty.model.BookingData;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class BookingService {
 
@@ -26,7 +25,7 @@ public class BookingService {
 
     public boolean reserveBar() {
         var bars = barRepo.get();
-        var devs = devRepo.get().stream().collect(Collectors.toList());
+        var devs = new ArrayList<>(devRepo.get());
         var boats = boatRepo.get();
 
         Map<LocalDate, Integer> numberOfAvailableDevsByDate = new HashMap<>();
@@ -34,7 +33,6 @@ public class BookingService {
             for (var date : devData.getOnSite()) {
                 if (numberOfAvailableDevsByDate.containsKey(date)) {
                     numberOfAvailableDevsByDate.put(date, numberOfAvailableDevsByDate.get(date) + 1);
-                    continue;
                 } else {
                     numberOfAvailableDevsByDate.put(date, 1);
                 }
