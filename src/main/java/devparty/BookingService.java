@@ -57,17 +57,11 @@ public class BookingService {
                 .map(Map.Entry::getKey)
                 .orElse(null);
 
-        for (var boatData : boats) {
-            if (new Bar().hasEnoughCapacity(boatData, maxNumberOfDevs)) {
-                String name = boatData.getName();
-                System.out.println("Bar booked: " + name + " at " + bestDate);
-                BarData barData = new BarData(boatData.getName(), boatData.getMaxPeople(), allDays());
-                bookingRepo.save(new BookingData(
-                        barData, bestDate
-                ));
-            }
-        }
-        if (findFirstAvailableBoat(boats, maxNumberOfDevs).isPresent()) return true;
+        Optional<BoatData> firstAvailableBoat = findFirstAvailableBoat(boats, maxNumberOfDevs);
+
+        firstAvailableBoat.ifPresent(boatData -> printAndSaveBoatBooking(boatData, bestDate));
+
+        if (firstAvailableBoat.isPresent()) return true;
 
         Optional<BarData> firstAvailableBar = findFirstAvailableBar(bars, maxNumberOfDevs, bestDate);
 
@@ -75,6 +69,15 @@ public class BookingService {
                 .ifPresent(barData -> printAndSaveBooking(barData, bestDate));
 
         return firstAvailableBar.isPresent();
+    }
+
+    private void printAndSaveBoatBooking(BoatData boatData, LocalDate bestDate) {
+        String name = boatData.getName();
+        System.out.println("Bar booked: " + name + " at " + bestDate);
+        BarData barData = new BarData(boatData.getName(), boatData.getMaxPeople(), allDays());
+        bookingRepo.save(new BookingData(
+                barData, bestDate
+        ));
     }
 
     private static Optional<BoatData> findFirstAvailableBoat(List<BoatData> boats, int maxNumberOfDevs) {
