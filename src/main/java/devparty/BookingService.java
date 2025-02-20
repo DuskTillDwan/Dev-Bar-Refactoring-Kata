@@ -7,7 +7,6 @@ import devparty.model.BookingData;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class BookingService {
 
@@ -26,7 +25,7 @@ public class BookingService {
 
     public boolean reserveBar() {
         var bars = barRepo.get();
-        var devs = devRepo.get().stream().collect(Collectors.toList());
+        var devs = new ArrayList<>(devRepo.get());
         var boats = boatRepo.get();
 
         Map<LocalDate, Integer> numberOfAvailableDevsByDate = new HashMap<>();
@@ -34,7 +33,6 @@ public class BookingService {
             for (var date : devData.getOnSite()) {
                 if (numberOfAvailableDevsByDate.containsKey(date)) {
                     numberOfAvailableDevsByDate.put(date, numberOfAvailableDevsByDate.get(date) + 1);
-                    continue;
                 } else {
                     numberOfAvailableDevsByDate.put(date, 1);
                 }
@@ -69,16 +67,25 @@ public class BookingService {
                 return true;
             }
         }
-
         for (var barData : bars) {
             if (barData.getCapacity() >= maxNumberOfDevs && barData.getOpen().contains(bestDate.getDayOfWeek())) {
                 bookBar(barData.getName(), bestDate);
                 bookingRepo.save(new BookingData(barData, bestDate));
-                return true;
             }
         }
 
-        return false;
+        return findFirstAvailableBar(bars, maxNumberOfDevs, bestDate).isPresent();
+    }
+
+    private Optional<BarData> findFirstAvailableBar(List<BarData> bars, int maxNumberOfDevs, LocalDate bestDate) {
+        Optional<BarData> result = Optional.empty();
+        for (var barData : bars) {
+            if (barData.getCapacity() >= maxNumberOfDevs && barData.getOpen().contains(bestDate.getDayOfWeek())) {
+                result = Optional.of(barData);
+                break;
+            }
+        }
+        return result;
     }
 
     private static List<DayOfWeek> allDays() {
