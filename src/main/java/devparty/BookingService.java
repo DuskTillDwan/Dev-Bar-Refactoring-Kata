@@ -67,25 +67,20 @@ public class BookingService {
                 return true;
             }
         }
-        for (var barData : bars) {
-            if (barData.getCapacity() >= maxNumberOfDevs && barData.getOpen().contains(bestDate.getDayOfWeek())) {
-                bookBar(barData.getName(), bestDate);
-                bookingRepo.save(new BookingData(barData, bestDate));
-            }
-        }
 
-        return findFirstAvailableBar(bars, maxNumberOfDevs, bestDate).isPresent();
+        Optional<BarData> firstAvailableBar = findFirstAvailableBar(bars, maxNumberOfDevs, bestDate);
+
+        firstAvailableBar
+                .ifPresent(barData -> {
+            bookBar(barData.getName(), bestDate);
+            bookingRepo.save(new BookingData(barData, bestDate));
+        });
+
+        return firstAvailableBar.isPresent();
     }
 
     private Optional<BarData> findFirstAvailableBar(List<BarData> bars, int maxNumberOfDevs, LocalDate bestDate) {
-        Optional<BarData> result = Optional.empty();
-        for (var barData : bars) {
-            if (barData.getCapacity() >= maxNumberOfDevs && barData.getOpen().contains(bestDate.getDayOfWeek())) {
-                result = Optional.of(barData);
-                break;
-            }
-        }
-        return result;
+        return bars.stream().filter(barData -> barData.getCapacity() >= maxNumberOfDevs && barData.getOpen().contains(bestDate.getDayOfWeek())).findFirst();
     }
 
     private static List<DayOfWeek> allDays() {
