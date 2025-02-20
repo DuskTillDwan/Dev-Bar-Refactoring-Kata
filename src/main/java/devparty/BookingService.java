@@ -67,7 +67,7 @@ public class BookingService {
                 ));
             }
         }
-        if (findFirstAvailableBoat(boats, maxNumberOfDevs)) return true;
+        if (findFirstAvailableBoat(boats, maxNumberOfDevs).isPresent()) return true;
 
         Optional<BarData> firstAvailableBar = findFirstAvailableBar(bars, maxNumberOfDevs, bestDate);
 
@@ -77,13 +77,13 @@ public class BookingService {
         return firstAvailableBar.isPresent();
     }
 
-    private static boolean findFirstAvailableBoat(List<BoatData> boats, int maxNumberOfDevs) {
+    private static Optional<BoatData> findFirstAvailableBoat(List<BoatData> boats, int maxNumberOfDevs) {
         for (var boatData : boats) {
             if (new Bar().hasEnoughCapacity(boatData, maxNumberOfDevs)) {
-                return true;
+                return Optional.of(boatData);
             }
         }
-        return false;
+        return Optional.empty();
     }
 
     private void printAndSaveBooking(BarData barData, LocalDate bestDate) {
