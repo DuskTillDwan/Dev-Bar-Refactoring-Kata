@@ -78,14 +78,7 @@ public class BookingService {
     }
 
     private static Optional<BoatData> findFirstAvailableBoat(List<BoatData> boats, int maxNumberOfDevs) {
-        Optional<BoatData> result = Optional.empty();
-        for (var boatData : boats) {
-            if (new Bar().hasEnoughCapacity(boatData, maxNumberOfDevs)) {
-                result = Optional.of(boatData);
-                break;
-            }
-        }
-        return result;
+        return boats.stream().filter(boatData -> new Bar().hasEnoughCapacity(boatData, maxNumberOfDevs)).findFirst();
     }
 
     private void printAndSaveBooking(BarData barData, LocalDate bestDate) {
