@@ -1,9 +1,7 @@
 package devparty.model;
 
-import devparty.model.BoatData;
+import java.time.DayOfWeek;
+import java.util.List;
 
-public class Bar {
-    public boolean hasEnoughCapacity(BoatData boatData, int maxNumberOfDevs) {
-        return boatData.getMaxPeople() >= maxNumberOfDevs;
-    }
+public record Bar(String name, int capacity, List<DayOfWeek> open) {
 }

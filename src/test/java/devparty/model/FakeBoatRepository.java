@@ -5,14 +5,14 @@ import devparty.IBoatRepository;
 import java.util.List;
 
 public class FakeBoatRepository implements IBoatRepository {
-    private final List<BoatData> boats;
+    private final List<Boat> boats;
 
-    public FakeBoatRepository(List<BoatData> boats) {
+    public FakeBoatRepository(List<Boat> boats) {
         this.boats = boats;
     }
 
     @Override
-    public List<BoatData> get() {
+    public List<Boat> get() {
         return boats;
     }
 }

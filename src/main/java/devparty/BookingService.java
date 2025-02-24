@@ -1,9 +1,6 @@
 package devparty;
 
-import devparty.model.Bar;
-import devparty.model.BarData;
-import devparty.model.BoatData;
-import devparty.model.BookingData;
+import devparty.model.*;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -25,20 +22,11 @@ public class BookingService {
     }
 
     public boolean reserveBar() {
-        var bars = barRepo.get();
+        var barDataList = barRepo.get();
         var devs = new ArrayList<>(devRepo.get());
-        var boats = boatRepo.get();
+        var boatDataList = boatRepo.get();
 
-        Map<LocalDate, Integer> numberOfAvailableDevsByDate = new HashMap<>();
-        for (var devData : devs) {
-            for (var date : devData.getOnSite()) {
-                if (numberOfAvailableDevsByDate.containsKey(date)) {
-                    numberOfAvailableDevsByDate.put(date, numberOfAvailableDevsByDate.get(date) + 1);
-                } else {
-                    numberOfAvailableDevsByDate.put(date, 1);
-                }
-            }
-        }
+        Map<LocalDate, Integer> numberOfAvailableDevsByDate = getNumberOfAvailableDevsByDate(devs);
 
         int maxNumberOfDevs = Collections.max(numberOfAvailableDevsByDate.values());
 
@@ -46,52 +34,54 @@ public class BookingService {
             return false;
         }
 
-        Optional<Map.Entry<LocalDate, Integer>> found = Optional.empty();
-        for (Map.Entry<LocalDate, Integer> entry : numberOfAvailableDevsByDate.entrySet()) {
-            if (entry.getValue() == maxNumberOfDevs) {
-                found = Optional.of(entry);
-                break;
-            }
-        }
+        Optional<Map.Entry<LocalDate, Integer>> found = numberOfAvailableDevsByDate.entrySet().stream().filter(entry -> entry.getValue() == maxNumberOfDevs).findFirst();
+
         LocalDate bestDate = found
                 .map(Map.Entry::getKey)
                 .orElse(null);
-
-        Optional<BoatData> firstAvailableBoat = findFirstAvailableBoat(boats, maxNumberOfDevs);
+        var boats = new Boats(boatDataList);
+        Optional<Boat> firstAvailableBoat = boats.findFirstAvailableBoat(maxNumberOfDevs);
 
         firstAvailableBoat.ifPresent(boatData -> printAndSaveBoatBooking(boatData, bestDate));
 
         if (firstAvailableBoat.isPresent()) return true;
 
-        Optional<BarData> firstAvailableBar = findFirstAvailableBar(bars, maxNumberOfDevs, bestDate);
+        var bars = new Bars(barDataList);
+        Optional<Bar> firstAvailableBar = bars.findFirstAvailableBar(maxNumberOfDevs, bestDate);
 
         firstAvailableBar
-                .ifPresent(barData -> printAndSaveBooking(barData, bestDate));
+                .ifPresent(bar -> printAndSaveBooking(bar, bestDate));
 
         return firstAvailableBar.isPresent();
     }
 
-    private void printAndSaveBoatBooking(BoatData boatData, LocalDate bestDate) {
-        String name = boatData.getName();
+    private Map<LocalDate, Integer> getNumberOfAvailableDevsByDate(ArrayList<DevData> devs) {
+        Map<LocalDate, Integer> numberOfAvailableDevsByDate = new HashMap<>();
+        for (var devData : devs) {
+            for (var date : devData.onSite()) {
+                if (numberOfAvailableDevsByDate.containsKey(date)) {
+                    numberOfAvailableDevsByDate.put(date, numberOfAvailableDevsByDate.get(date) + 1);
+                    continue;
+                }
+                numberOfAvailableDevsByDate.put(date, 1);
+            }
+        }
+        return numberOfAvailableDevsByDate;
+    }
+
+
+    private void printAndSaveBoatBooking(Boat boat, LocalDate bestDate) {
+        String name = boat.name();
         System.out.println("Bar booked: " + name + " at " + bestDate);
-        BarData barData = new BarData(boatData.getName(), boatData.getMaxPeople(), allDays());
+        Bar bar = new Bar(name, boat.maxPeople(), allDays());
         bookingRepo.save(new BookingData(
-                barData, bestDate
+                bar, bestDate
         ));
     }
 
-    private static Optional<BoatData> findFirstAvailableBoat(List<BoatData> boats, int maxNumberOfDevs) {
-        return boats.stream().filter(boatData -> new Bar().hasEnoughCapacity(boatData, maxNumberOfDevs)).findFirst();
-    }
-
-    private void printAndSaveBooking(BarData barData, LocalDate bestDate) {
-        String name = barData.getName();
-        System.out.println("Bar booked: " + name + " at " + bestDate);
-        bookingRepo.save(new BookingData(barData, bestDate));
-    }
-
-    private Optional<BarData> findFirstAvailableBar(List<BarData> bars, int maxNumberOfDevs, LocalDate bestDate) {
-        return bars.stream().filter(barData -> barData.getCapacity() >= maxNumberOfDevs && barData.getOpen().contains(bestDate.getDayOfWeek())).findFirst();
+    private void printAndSaveBooking(Bar bar, LocalDate bestDate) {
+        System.out.println("Bar booked: " + bar.name() + " at " + bestDate);
+        bookingRepo.save(new BookingData(bar, bestDate));
     }
 
     private static List<DayOfWeek> allDays() {
