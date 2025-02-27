@@ -26,28 +26,21 @@ public class BookingService {
         var devs = new ArrayList<>(devRepo.get());
         var boatDataList = boatRepo.get();
 
-
-        Map<LocalDate, Integer> numberOfAvailableDevsByDate = DevAvailabilityCalendar.getNumberOfAvailableDevsByDate(devs);
-
-        int maxNumberOfDevs = DevAvailabilityCalendar.getMaxNumberOfDevsByDate(numberOfAvailableDevsByDate);
-
-        if (maxNumberOfDevs <= devs.size() * 0.6) return false;
-
-        LocalDate bestDate = DevAvailabilityCalendar.findBestDateIfExists(numberOfAvailableDevsByDate, maxNumberOfDevs);
+        DevAvailabilityCalendar availabilityCalendar = new DevAvailabilityCalendar(devs);
+        int maxNumberOfDevs = availabilityCalendar.getMaxNumberOfDevsByDate();
+        if (availabilityCalendar.notEnoughAvailableDevs(devs)) return false;
+        LocalDate bestDate = availabilityCalendar.findBestDateIfExists(maxNumberOfDevs);
 
         var boats = new Boats(boatDataList);
         Optional<Boat> firstAvailableBoat = boats.findFirstAvailableBoat(maxNumberOfDevs);
-
-        firstAvailableBoat.ifPresent(boatData -> printAndSaveBoatBooking(boatData, bestDate));
-
+        firstAvailableBoat
+                .ifPresent(boatData -> printAndSaveBoatBooking(boatData, bestDate));
         if (firstAvailableBoat.isPresent()) return true;
 
         var bars = new Bars(barDataList);
         Optional<Bar> firstAvailableBar = bars.findFirstAvailableBar(maxNumberOfDevs, bestDate);
-
         firstAvailableBar
                 .ifPresent(bar -> printAndSaveBooking(bar, bestDate));
-
         return firstAvailableBar.isPresent();
     }
 

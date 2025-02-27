@@ -1,9 +1,9 @@
 package devparty;
 
-import devparty.model.DevData;
+import devparty.model.Dev;
 
 import java.util.List;
 
 public interface  IDevRepository {
-    public List<DevData> get();
+    List<Dev> get();
 }
