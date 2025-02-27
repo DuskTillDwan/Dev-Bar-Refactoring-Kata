@@ -26,19 +26,15 @@ public class BookingService {
         var devs = new ArrayList<>(devRepo.get());
         var boatDataList = boatRepo.get();
 
-        Map<LocalDate, Integer> numberOfAvailableDevsByDate = getNumberOfAvailableDevsByDate(devs);
 
-        int maxNumberOfDevs = Collections.max(numberOfAvailableDevsByDate.values());
+        Map<LocalDate, Integer> numberOfAvailableDevsByDate = DevAvailabilityCalendar.getNumberOfAvailableDevsByDate(devs);
 
-        if (maxNumberOfDevs <= devs.size() * 0.6) {
-            return false;
-        }
+        int maxNumberOfDevs = DevAvailabilityCalendar.getMaxNumberOfDevsByDate(numberOfAvailableDevsByDate);
 
-        Optional<Map.Entry<LocalDate, Integer>> found = numberOfAvailableDevsByDate.entrySet().stream().filter(entry -> entry.getValue() == maxNumberOfDevs).findFirst();
+        if (maxNumberOfDevs <= devs.size() * 0.6) return false;
 
-        LocalDate bestDate = found
-                .map(Map.Entry::getKey)
-                .orElse(null);
+        LocalDate bestDate = DevAvailabilityCalendar.findBestDateIfExists(numberOfAvailableDevsByDate, maxNumberOfDevs);
+
         var boats = new Boats(boatDataList);
         Optional<Boat> firstAvailableBoat = boats.findFirstAvailableBoat(maxNumberOfDevs);
 
@@ -53,20 +49,6 @@ public class BookingService {
                 .ifPresent(bar -> printAndSaveBooking(bar, bestDate));
 
         return firstAvailableBar.isPresent();
-    }
-
-    private Map<LocalDate, Integer> getNumberOfAvailableDevsByDate(ArrayList<DevData> devs) {
-        Map<LocalDate, Integer> numberOfAvailableDevsByDate = new HashMap<>();
-        for (var devData : devs) {
-            for (var date : devData.onSite()) {
-                if (numberOfAvailableDevsByDate.containsKey(date)) {
-                    numberOfAvailableDevsByDate.put(date, numberOfAvailableDevsByDate.get(date) + 1);
-                    continue;
-                }
-                numberOfAvailableDevsByDate.put(date, 1);
-            }
-        }
-        return numberOfAvailableDevsByDate;
     }
 
 
