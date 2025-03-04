@@ -2,18 +2,11 @@ package devparty.model;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
-public record Bars(List<Bars> barsList) {
-    public static boolean findFirstAvailableBar(List<Bar> bars, int maxNumberOfDevs, LocalDate bestDate) {
-        for (Bar bar : bars) {
-            if (barIsOpenAndHasCapacity(bar, maxNumberOfDevs, bestDate)) {
-                return true;
-            }
-        }
-        return false;
+public record Bars(List<Bar> barsList) {
+    public Optional<Bar> findFirstAvailableBar(int maxNumberOfDevs, LocalDate bestDate) {
+        return barsList.stream().filter(bar -> bar.barIsOpenAndHasCapacity(maxNumberOfDevs, bestDate)).findFirst();
     }
 
-    public static boolean barIsOpenAndHasCapacity(Bar bar, int maxNumberOfDevs, LocalDate bestDate) {
-        return bar.getCapacity() >= maxNumberOfDevs && bar.getOpen().contains(bestDate.getDayOfWeek());
-    }
 }

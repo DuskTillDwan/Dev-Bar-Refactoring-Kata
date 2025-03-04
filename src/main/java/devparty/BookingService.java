@@ -48,22 +48,18 @@ public class BookingService {
         LocalDate bestDate = getBestDate(found);
 
         Boats boatList = new Boats(boats);
+        Optional<Boat> firstAvailableBoat = boatList.findFirstAvailableBoat(maxNumberOfDevs);
+        firstAvailableBoat
+                .ifPresent(boat -> printAndSaveReservedBoat(boat, bestDate));
 
-        for (var boatData : boats) {
-            if (boatData.hasEnoughCapacity(maxNumberOfDevs)) {
-                printAndSaveReservedBoat(boatData, bestDate);
-            }
-        }
+        if (firstAvailableBoat.isPresent()) return true;
 
-        if (boatList.findFirstAvailableBoat(maxNumberOfDevs)) return true;
+        Bars barList = new Bars(bars);
+        Optional<Bar> firstAvailableBar = barList.findFirstAvailableBar(maxNumberOfDevs, bestDate);
+        firstAvailableBar
+                .ifPresent(bar -> printAndSaveReservedBar(bar, bestDate));
 
-        for (var barData : bars) {
-            if (Bars.barIsOpenAndHasCapacity(barData, maxNumberOfDevs, bestDate)) {
-                printAndSaveReservedBar(barData, bestDate);
-            }
-        }
-
-        return Bars.findFirstAvailableBar(bars, maxNumberOfDevs, bestDate);
+        return firstAvailableBar.isPresent();
     }
 
     private static LocalDate getBestDate(Optional<Map.Entry<LocalDate, Integer>> found) {
@@ -73,20 +69,13 @@ public class BookingService {
     }
 
     private static Optional<Map.Entry<LocalDate, Integer>> findBestDateByAvailableDevs(Map<LocalDate, Integer> numberOfAvailableDevsByDate, int maxNumberOfDevs) {
-        Optional<Map.Entry<LocalDate, Integer>> found = Optional.empty();
-        for (Map.Entry<LocalDate, Integer> entry : numberOfAvailableDevsByDate.entrySet()) {
-            if (entry.getValue() == maxNumberOfDevs) {
-                found = Optional.of(entry);
-                break;
-            }
-        }
-        return found;
+        return numberOfAvailableDevsByDate.entrySet().stream().filter(entry -> entry.getValue() == maxNumberOfDevs).findFirst();
     }
 
     private void printAndSaveReservedBoat(Boat boat, LocalDate bestDate) {
         String name = boat.name();
         System.out.println("Bar booked: " + name + " at " + bestDate);
-        Bar bar = new Bar(boat.name(), boat.maxPeople(), allDays());
+        Bar bar = new Bar(name, boat.maxPeople(), allDays());
         bookingRepo.save(new BookingData(
                 bar, bestDate
         ));

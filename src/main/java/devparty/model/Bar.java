@@ -1,12 +1,17 @@
 package devparty.model;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.List;
 
 public class Bar {
     private final String name;
     private final int capacity;
     private final List<DayOfWeek> open;
+
+    public boolean barIsOpenAndHasCapacity(int maxNumberOfDevs, LocalDate bestDate) {
+        return getCapacity() >= maxNumberOfDevs && getOpen().contains(bestDate.getDayOfWeek());
+    }
 
     public String getName() {
         return name;

@@ -1,15 +1,11 @@
 package devparty.model;
 
 import java.util.List;
+import java.util.Optional;
 
 public record Boats(List<Boat> boatsList) {
-    public boolean findFirstAvailableBoat(int maxNumberOfDevs) {
-        for (var boatData : boatsList) {
-            if (boatData.hasEnoughCapacity(maxNumberOfDevs)) {
-                return true;
-            }
-        }
-        return false;
+    public Optional<Boat> findFirstAvailableBoat(int maxNumberOfDevs) {
+        return boatsList.stream().filter(boatData -> boatData.hasEnoughCapacity(maxNumberOfDevs)).findFirst();
     }
 
 }

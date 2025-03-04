@@ -30,7 +30,7 @@ class BookingServiceTest {
         );
 
         BookingController controller = buildController(indoorBars, developers);
-        var bookSuccess = controller.makeBooking();
+        boolean bookSuccess = controller.makeBooking();
         assertTrue(bookSuccess);
         BookingData result = controller.get().stream().findFirst().orElse(null);
 
@@ -55,7 +55,7 @@ class BookingServiceTest {
         );
 
         BookingController controller = buildController(indoorBars, developers);
-        var bookSuccess = controller.makeBooking();
+        boolean bookSuccess = controller.makeBooking();
         assertFalse(bookSuccess);
     }
 
@@ -72,7 +72,7 @@ class BookingServiceTest {
         );
 
         BookingController controller = buildController(indoorBars, developers);
-        var bookSuccess = controller.makeBooking();
+        boolean bookSuccess = controller.makeBooking();
         assertTrue(bookSuccess);
         BookingData result = controller.get().stream().findFirst().orElse(null);
 
@@ -94,7 +94,7 @@ class BookingServiceTest {
         );
 
         BookingController controller = buildController(indoorBars, developers);
-        var bookSuccess = controller.makeBooking();
+        boolean bookSuccess = controller.makeBooking();
 
         assertFalse(bookSuccess);
 
@@ -115,7 +115,7 @@ class BookingServiceTest {
         );
 
         BookingController controller = buildController(indoorBars, developers);
-        var bookSuccess = controller.makeBooking();
+        boolean bookSuccess = controller.makeBooking();
 
         assertFalse(bookSuccess);
 
@@ -136,7 +136,7 @@ class BookingServiceTest {
         );
 
         BookingController controller = buildController(indoorBars, developers, boats);
-        var bookSuccess = controller.makeBooking();
+        boolean bookSuccess = controller.makeBooking();
 
         assertTrue(bookSuccess);
 
