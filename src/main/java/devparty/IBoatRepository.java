@@ -1,9 +1,9 @@
 package devparty;
 
-import devparty.model.BoatData;
+import devparty.model.Boat;
 
 import java.util.List;
 
 public interface IBoatRepository {
-    List<BoatData> get();
+    List<Boat> get();
 }

@@ -19,6 +19,6 @@ public class FakeBookingRepository  implements IBookingRepository {
     }
 
     public BookingData getUpcomingBooking(LocalDate date) {
-        return bookingData.stream().filter(d -> d.getDate().isEqual(date) ).findFirst().orElse(null);
+        return bookingData.stream().filter(d -> d.date().isEqual(date) ).findFirst().orElse(null);
     }
 }

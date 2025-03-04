@@ -1,7 +1,7 @@
 package devparty;
 
-import devparty.model.BarData;
-import devparty.model.BoatData;
+import devparty.model.Bar;
+import devparty.model.Boat;
 import devparty.model.BookingData;
 
 import java.time.DayOfWeek;
@@ -83,7 +83,7 @@ public class BookingService {
         return found;
     }
 
-    private static boolean findFirstAvailableBoat(List<BoatData> boats, int maxNumberOfDevs) {
+    private static boolean findFirstAvailableBoat(List<Boat> boats, int maxNumberOfDevs) {
         for (var boatData : boats) {
             if (boatData.hasEnoughCapacity(maxNumberOfDevs)) {
                 return true;
@@ -92,32 +92,32 @@ public class BookingService {
         return false;
     }
 
-    private static boolean findFirstAvailableBar(List<BarData> bars, int maxNumberOfDevs, LocalDate bestDate) {
-        for (BarData barData : bars) {
-            if (barIsOpenAndHasCapacity(barData, maxNumberOfDevs, bestDate)) {
+    private static boolean findFirstAvailableBar(List<Bar> bars, int maxNumberOfDevs, LocalDate bestDate) {
+        for (Bar bar : bars) {
+            if (barIsOpenAndHasCapacity(bar, maxNumberOfDevs, bestDate)) {
                 return true;
             }
         }
         return false;
     }
 
-    private void printAndSaveReservedBoat(BoatData boatData, LocalDate bestDate) {
-        String name = boatData.getName();
+    private void printAndSaveReservedBoat(Boat boat, LocalDate bestDate) {
+        String name = boat.name();
         System.out.println("Bar booked: " + name + " at " + bestDate);
-        BarData barData = new BarData(boatData.getName(), boatData.getMaxPeople(), allDays());
+        Bar bar = new Bar(boat.name(), boat.maxPeople(), allDays());
         bookingRepo.save(new BookingData(
-                barData, bestDate
+                bar, bestDate
         ));
     }
 
-    private void printAndSaveReservedBar(BarData barData, LocalDate bestDate) {
-        String name = barData.getName();
+    private void printAndSaveReservedBar(Bar bar, LocalDate bestDate) {
+        String name = bar.getName();
         System.out.println("Bar booked: " + name + " at " + bestDate);
-        bookingRepo.save(new BookingData(barData, bestDate));
+        bookingRepo.save(new BookingData(bar, bestDate));
     }
 
-    private static boolean barIsOpenAndHasCapacity(BarData barData, int maxNumberOfDevs, LocalDate bestDate) {
-        return barData.getCapacity() >= maxNumberOfDevs && barData.getOpen().contains(bestDate.getDayOfWeek());
+    private static boolean barIsOpenAndHasCapacity(Bar bar, int maxNumberOfDevs, LocalDate bestDate) {
+        return bar.getCapacity() >= maxNumberOfDevs && bar.getOpen().contains(bestDate.getDayOfWeek());
     }
 
     private static List<DayOfWeek> allDays() {
