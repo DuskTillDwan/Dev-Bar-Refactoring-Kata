@@ -2,12 +2,12 @@ package devparty;
 
 import devparty.model.Bar;
 import devparty.model.BarData;
+import devparty.model.BoatData;
 import devparty.model.BookingData;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class BookingService {
 
@@ -26,7 +26,7 @@ public class BookingService {
 
     public boolean reserveBar() {
         var bars = barRepo.get();
-        var devs = devRepo.get().stream().collect(Collectors.toList());
+        var devs = new ArrayList<>(devRepo.get());
         var boats = boatRepo.get();
 
         Map<LocalDate, Integer> numberOfAvailableDevsByDate = new HashMap<>();
@@ -34,7 +34,6 @@ public class BookingService {
             for (var date : devData.getOnSite()) {
                 if (numberOfAvailableDevsByDate.containsKey(date)) {
                     numberOfAvailableDevsByDate.put(date, numberOfAvailableDevsByDate.get(date) + 1);
-                    continue;
                 } else {
                     numberOfAvailableDevsByDate.put(date, 1);
                 }
@@ -59,21 +58,20 @@ public class BookingService {
                 .orElse(null);
 
         for (var boatData : boats) {
-            Bar bar = new Bar();
-            if (bar.hasEnoughCapacity(boatData, maxNumberOfDevs)) {
-                bookBar(boatData.getName(), bestDate);
-                BarData barData = new BarData(boatData.getName(), boatData.getMaxPeople(), allDays());
-                bookingRepo.save(new BookingData(
-                        barData, bestDate
-                ));
+            if (new Bar().hasEnoughCapacity(boatData, maxNumberOfDevs)) {
+                printAndSaveReservedBoat(boatData, bestDate);
                 return true;
             }
         }
 
         for (var barData : bars) {
-            if (barData.getCapacity() >= maxNumberOfDevs && barData.getOpen().contains(bestDate.getDayOfWeek())) {
-                bookBar(barData.getName(), bestDate);
-                bookingRepo.save(new BookingData(barData, bestDate));
+            if (barIsOpenAndHasCapacity(barData, maxNumberOfDevs, bestDate)) {
+                printAndSaveReservedBar(barData, bestDate);
+            }
+        }
+
+        for (var barData : bars) {
+            if (barIsOpenAndHasCapacity(barData, maxNumberOfDevs, bestDate)) {
                 return true;
             }
         }
@@ -81,12 +79,27 @@ public class BookingService {
         return false;
     }
 
-    private static List<DayOfWeek> allDays() {
-        return Arrays.asList(DayOfWeek.values());
+    private void printAndSaveReservedBoat(BoatData boatData, LocalDate bestDate) {
+        String name = boatData.getName();
+        System.out.println("Bar booked: " + name + " at " + bestDate);
+        BarData barData = new BarData(boatData.getName(), boatData.getMaxPeople(), allDays());
+        bookingRepo.save(new BookingData(
+                barData, bestDate
+        ));
     }
 
-    private void bookBar(String name, LocalDate dateTime) {
-        System.out.println("Bar booked: " + name + " at " + dateTime);
+    private void printAndSaveReservedBar(BarData barData, LocalDate bestDate) {
+        String name = barData.getName();
+        System.out.println("Bar booked: " + name + " at " + bestDate);
+        bookingRepo.save(new BookingData(barData, bestDate));
+    }
+
+    private static boolean barIsOpenAndHasCapacity(BarData barData, int maxNumberOfDevs, LocalDate bestDate) {
+        return barData.getCapacity() >= maxNumberOfDevs && barData.getOpen().contains(bestDate.getDayOfWeek());
+    }
+
+    private static List<DayOfWeek> allDays() {
+        return Arrays.asList(DayOfWeek.values());
     }
 
 
