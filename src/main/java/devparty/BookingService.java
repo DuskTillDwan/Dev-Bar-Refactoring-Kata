@@ -60,9 +60,10 @@ public class BookingService {
         for (var boatData : boats) {
             if (new Bar().hasEnoughCapacity(boatData, maxNumberOfDevs)) {
                 printAndSaveReservedBoat(boatData, bestDate);
-                return true;
             }
         }
+
+        if (findFirstAvailableBoat(boats, maxNumberOfDevs)) return true;
 
         for (var barData : bars) {
             if (barIsOpenAndHasCapacity(barData, maxNumberOfDevs, bestDate)) {
@@ -70,12 +71,24 @@ public class BookingService {
             }
         }
 
-        for (var barData : bars) {
+        return findFirstAvailableBar(bars, maxNumberOfDevs, bestDate);
+    }
+
+    private static boolean findFirstAvailableBoat(List<BoatData> boats, int maxNumberOfDevs) {
+        for (var boatData : boats) {
+            if (new Bar().hasEnoughCapacity(boatData, maxNumberOfDevs)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean findFirstAvailableBar(List<BarData> bars, int maxNumberOfDevs, LocalDate bestDate) {
+        for (BarData barData : bars) {
             if (barIsOpenAndHasCapacity(barData, maxNumberOfDevs, bestDate)) {
                 return true;
             }
         }
-
         return false;
     }
 
