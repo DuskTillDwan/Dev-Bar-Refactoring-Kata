@@ -1,6 +1,5 @@
 package devparty;
 
-import devparty.model.Bar;
 import devparty.model.BarData;
 import devparty.model.BoatData;
 import devparty.model.BookingData;
@@ -46,19 +45,12 @@ public class BookingService {
             return false;
         }
 
-        Optional<Map.Entry<LocalDate, Integer>> found = Optional.empty();
-        for (Map.Entry<LocalDate, Integer> entry : numberOfAvailableDevsByDate.entrySet()) {
-            if (entry.getValue() == maxNumberOfDevs) {
-                found = Optional.of(entry);
-                break;
-            }
-        }
-        LocalDate bestDate = found
-                .map(Map.Entry::getKey)
-                .orElse(null);
+        Optional<Map.Entry<LocalDate, Integer>> found = findBestDateByAvailableDevs(numberOfAvailableDevsByDate, maxNumberOfDevs);
+
+        LocalDate bestDate = getBestDate(found);
 
         for (var boatData : boats) {
-            if (new Bar().hasEnoughCapacity(boatData, maxNumberOfDevs)) {
+            if (boatData.hasEnoughCapacity(maxNumberOfDevs)) {
                 printAndSaveReservedBoat(boatData, bestDate);
             }
         }
@@ -74,9 +66,26 @@ public class BookingService {
         return findFirstAvailableBar(bars, maxNumberOfDevs, bestDate);
     }
 
+    private static LocalDate getBestDate(Optional<Map.Entry<LocalDate, Integer>> found) {
+        return found
+                .map(Map.Entry::getKey)
+                .orElse(null);
+    }
+
+    private static Optional<Map.Entry<LocalDate, Integer>> findBestDateByAvailableDevs(Map<LocalDate, Integer> numberOfAvailableDevsByDate, int maxNumberOfDevs) {
+        Optional<Map.Entry<LocalDate, Integer>> found = Optional.empty();
+        for (Map.Entry<LocalDate, Integer> entry : numberOfAvailableDevsByDate.entrySet()) {
+            if (entry.getValue() == maxNumberOfDevs) {
+                found = Optional.of(entry);
+                break;
+            }
+        }
+        return found;
+    }
+
     private static boolean findFirstAvailableBoat(List<BoatData> boats, int maxNumberOfDevs) {
         for (var boatData : boats) {
-            if (new Bar().hasEnoughCapacity(boatData, maxNumberOfDevs)) {
+            if (boatData.hasEnoughCapacity(maxNumberOfDevs)) {
                 return true;
             }
         }
